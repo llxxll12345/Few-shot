@@ -8,15 +8,24 @@ import torch.nn as nn
 from utils import *
 from omniglot import OmiglotSet
 import datetime
+import os
 
 def save_model(model, name, save_path):
     torch.save(model.state_dict(), os.path.join(save_path, name+'.pth'))
+
+def load_model(model, name, save_path):
+    path = os.path.join(save_path, 'model.pth')
+    if os.path.exists(os.path.join(save_path, 'model.pth')):
+        pre_model = torch.load(path)
+        model.load_state_dict(pre_model,strict=False)
+    return model
 
 def train(args):
     """
         Terminology: k-way n-shot, k classes, n shots per class
     """
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(device)
     renew_path(args.save)
     
     shots = args.shot+args.query
@@ -29,7 +38,8 @@ def train(args):
     test_loader = DataLoader(test_set, batch_sampler=test_sampler, num_workers=4, pin_memory=True)
 
     model = ConvModel(img_size=84)
-
+    model = load_model(model, 'model', args.save)
+    
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     # learing rate scheduler
     lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.5)
@@ -83,6 +93,7 @@ def train(args):
         average_loss_val = 0
         average_accuracy_val = 0
 
+        # evaluate after epoch.
         with torch.no_grad():
             for i, batch in enumerate(test_loader, 1):
                 num = args.shot * args.test_way
@@ -115,10 +126,10 @@ def train(args):
         training_log['val_acc'].append(average_accuracy_val)
 
         torch.save(training_log, os.path.join(args.save, 'training_log'))
-        save_model(model, 'epoch-last', args.save)
+        save_model(model, 'model', args.save)
 
-        if epoch % 20 == 0:
-            save_model(model, 'epoch-last', args.save)
+        if epoch % 1 == 0:
+            save_model(model, 'model', args.save)
         
         time_b = datetime.datetime.now()
         print('ETA:{}/{}'.format((time_b - time_a).seconds, (time_b - time_a).seconds * (args.epoch - epoch)))

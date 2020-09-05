@@ -49,7 +49,7 @@ class Attention(nn.Module):
 class ConvModel(nn.Module):
     def __init__(self, in_dim=3, hid_dim=64, out_dim=64, img_size=64):
         super().__init__()
-        self.attn = Attention(in_dim, img_size)
+        #self.attn = Attention(in_dim, img_size)
         self.conv1 = conv_block(in_dim, hid_dim)
         self.short1 = ShortCutBlock(hid_dim, hid_dim)
         self.short2 = ShortCutBlock(hid_dim, hid_dim)
