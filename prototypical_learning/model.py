@@ -51,15 +51,15 @@ class ConvModel(nn.Module):
         super().__init__()
         #self.attn = Attention(in_dim, img_size)
         self.conv1 = conv_block(in_dim, hid_dim)
-        self.short1 = ShortCutBlock(hid_dim, hid_dim)
-        self.short2 = ShortCutBlock(hid_dim, hid_dim)
+        #self.short1 = ShortCutBlock(hid_dim, hid_dim)
+        #self.short2 = ShortCutBlock(hid_dim, hid_dim)
         self.conv2 = conv_block(hid_dim, out_dim)
 
     def forward(self, x):
         #x = self.attn(x)
         x = self.conv1(x)
-        x = self.short1(x)
-        x = self.short2(x)
+        #x = self.short1(x)
+        #x = self.short2(x)
         x = self.conv2(x)
         return x.view(x.size(0), -1)
 
