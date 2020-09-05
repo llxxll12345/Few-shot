@@ -16,6 +16,7 @@ def train(args):
     """
         Terminology: k-way n-shot, k classes, n shots per class
     """
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     renew_path(args.save)
     
     shots = args.shot+args.query
@@ -24,10 +25,10 @@ def train(args):
     train_loader = DataLoader(train_set, batch_sampler=train_sampler, num_workers=4, pin_memory=True)
 
     test_set = OmiglotSet('test')
-    test_sampler = Sampler(test_set.label, 400, args.batch_size_test, shots)
+    test_sampler = Sampler(test_set.label, args.batch_size_test, args.test_way, shots)
     test_loader = DataLoader(test_set, batch_sampler=test_sampler, num_workers=4, pin_memory=True)
 
-    model = ConvModel(img_size=84)
+    model = ConvModel(img_size=84).to(device)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     # learing rate scheduler
@@ -50,8 +51,8 @@ def train(args):
         average_accuracy = 0
         for i, batch in enumerate(train_loader, 1):
             num = args.shot * args.train_way
-            support_x, query_x = batch[0][:num], batch[0][num:]
-            support_y, query_y = batch[1][:num], batch[1][num:]
+            support_x, query_x = batch[0][:num].to(device), batch[0][num:].to(device)
+            support_y, query_y = batch[1][:num].to(device), batch[1][num:].to(device)
             #print(support_x.shape)
             embedding = model(support_x)
 
@@ -83,8 +84,8 @@ def train(args):
 
         for i, batch in enumerate(test_loader, 1):
             num = args.shot * args.test_way
-            support_x, query_x = batch[0][:num], batch[0][num:]
-            support_y, query_y = batch[1][:num], batch[1][num:]
+            support_x, query_x = batch[0][:num].to(device), batch[0][num:].to(device)
+            support_y, query_y = batch[1][:num].to(device), batch[1][num:].to(device)
             embedding = model(support_x)
             embedding = embedding.reshape(args.shot, args.test_way, -1).mean(dim=0)
 
@@ -92,7 +93,7 @@ def train(args):
             distance = euclidean(model(query_x), embedding)
             prob = F.softmax(distance, dim=1)
             
-            loss = loss_fn(label, prob)
+            loss = loss_fn(prob, label)
             acc = get_accuracy(label, prob)
             average_loss_val = update_avg(i + 1, average_loss_val, loss.item())
             average_accuracy_val = update_avg(i + 1, average_accuracy_val, acc)
@@ -118,7 +119,7 @@ def train(args):
             save_model(model, 'epoch-last', args.save)
         
         time_b = datetime.datetime.now()
-        print('ETA:{}/{}'.format(time_b - time_a), (time_b - time_a) * (args.epoch - epoch))
+        print('ETA:{}/{}'.format((time_b - time_a).seconds, (time_b - time_a).seconds * (args.epoch - epoch)))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
