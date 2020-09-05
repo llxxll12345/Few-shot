@@ -16,9 +16,7 @@ def train(args):
     """
         Terminology: k-way n-shot, k classes, n shots per class
     """
-    if torch.cuda.is_available():
-        torch.set_default_tensor_type('torch.cuda.FloatTensor')
-        
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     renew_path(args.save)
     
     shots = args.shot+args.query
@@ -30,7 +28,7 @@ def train(args):
     test_sampler = Sampler(test_set.label, args.batch_size_test, args.test_way, shots)
     test_loader = DataLoader(test_set, batch_sampler=test_sampler, num_workers=4, pin_memory=True)
 
-    model = ConvModel(img_size=84)
+    model = ConvModel(img_size=84).to(device)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     # learing rate scheduler
