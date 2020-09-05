@@ -138,10 +138,10 @@ def train(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-e', '--epoch', type=int, default=200)
-    parser.add_argument('-b', '--batch_size_train', type=int, default=64)
-    parser.add_argument('-bt', '--batch_size_test', type=int, default=64)
+    parser.add_argument('-b', '--batch_size_train', type=int, default=16)
+    parser.add_argument('-bt', '--batch_size_test', type=int, default=16)
     parser.add_argument('-s', '--shot', type=int, default=1)
-    parser.add_argument('-q', '--query', type=int, default=7)
+    parser.add_argument('-q', '--query', type=int, default=15)
     parser.add_argument('--train_way', type=int, default=32)
     parser.add_argument('--test_way', type=int, default=32)
     parser.add_argument('-sv', '--save', default='./model/proto')
