@@ -22,7 +22,7 @@ class OmiglotSet(Dataset):
         for lang in langs:
             chars = [os.path.join(lang, x) for x in os.listdir(lang) if x != DS_STORE and os.path.isdir(x)]
             for ch in chars:
-                imgs = [os.path.join(ch, x) for x in os.listdir(ch) if x != DS_STORE and (('.jpg' in x) or ('.png' in x))]
+                imgs = [os.path.join(ch, x) for x in os.listdir(ch) if x != DS_STORE and (x.endswith('.jpg') or x.endswith('.png'))]
                 if ch not in self.labelSet:
                     self.labelSet.add(ch)
                 self.label.extend([len(self.labelSet) - 1] * len(imgs))
