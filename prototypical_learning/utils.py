@@ -26,12 +26,7 @@ def euclidean(a, b):
     return -((a - b)**2).sum(dim=2)
 
 def renew_path(path):
-    if os.path.exists(path):
-        rm = input('{} exists, remove? y/n'.format(path))
-        if rm != 'n':
-            shutil.rmtree(path)
-            os.makedirs(path)
-    else:
+    if not os.path.exists(path):
         os.makedirs(path)
 
 
