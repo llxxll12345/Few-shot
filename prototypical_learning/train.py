@@ -16,7 +16,9 @@ def train(args):
     """
         Terminology: k-way n-shot, k classes, n shots per class
     """
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    if torch.cuda.is_available():
+        torch.set_default_tensor_type('torch.cuda.FloatTensor')
+        
     renew_path(args.save)
     
     shots = args.shot+args.query
@@ -28,7 +30,7 @@ def train(args):
     test_sampler = Sampler(test_set.label, args.batch_size_test, args.test_way, shots)
     test_loader = DataLoader(test_set, batch_sampler=test_sampler, num_workers=4, pin_memory=True)
 
-    model = ConvModel(device, img_size=84).to(device)
+    model = ConvModel(img_size=84)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     # learing rate scheduler
@@ -51,15 +53,18 @@ def train(args):
         average_accuracy = 0
         for i, batch in enumerate(train_loader, 1):
             num = args.shot * args.train_way
-            support_x, query_x = batch[0][:num].to(device), batch[0][num:].to(device)
-            support_y, query_y = batch[1][:num].to(device), batch[1][num:].to(device)
+            support_x, query_x = batch[0][:num], batch[0][num:]
+            support_y, query_y = batch[1][:num], batch[1][num:]
             #print(support_x.shape)
             embedding = model(support_x)
 
             # Get the mean of all the embeddings to get the prototype for a class
             embedding = embedding.reshape(args.shot, args.train_way, -1).mean(dim=0)
 
-            label = query_y.type(torch.LongTensor)
+            if torch.cuda.is_available():
+                label = query_y.type(torch.cuda.LongTensor)
+            else:
+                label = query_y.type(torch.LongTensor)
             distance = euclidean(model(query_x), embedding)
             prob = F.softmax(distance, dim=1)
 
@@ -84,12 +89,15 @@ def train(args):
 
         for i, batch in enumerate(test_loader, 1):
             num = args.shot * args.test_way
-            support_x, query_x = batch[0][:num].to(device), batch[0][num:].to(device)
-            support_y, query_y = batch[1][:num].to(device), batch[1][num:].to(device)
+            support_x, query_x = batch[0][:num], batch[0][num:]
+            support_y, query_y = batch[1][:num], batch[1][num:]
             embedding = model(support_x)
             embedding = embedding.reshape(args.shot, args.test_way, -1).mean(dim=0)
 
-            label = query_y.type(torch.LongTensor)
+            if torch.cuda.is_available():
+                label = query_y.type(torch.cuda.LongTensor)
+            else:
+                label = query_y.type(torch.LongTensor)
             distance = euclidean(model(query_x), embedding)
             prob = F.softmax(distance, dim=1)
             
