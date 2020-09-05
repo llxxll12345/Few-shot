@@ -37,7 +37,7 @@ def train(args):
     test_sampler = Sampler(test_set.label, args.batch_size_test, args.test_way, shots)
     test_loader = DataLoader(test_set, batch_sampler=test_sampler, num_workers=4, pin_memory=True)
 
-    model = ConvModel(img_size=84).cuda()
+    model = ConvModel(img_size=84)
     model = load_model(model, 'model', args.save)
     
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
@@ -61,8 +61,8 @@ def train(args):
         average_accuracy = 0
         for i, batch in enumerate(train_loader, 1):
             num = args.shot * args.train_way
-            support_x, query_x = batch[0][:num].cuda(), batch[0][num:].cuda()
-            support_y, query_y = batch[1][:num].cuda(), batch[1][num:].cuda()
+            support_x, query_x = batch[0][:num], batch[0][num:]
+            support_y, query_y = batch[1][:num], batch[1][num:]
             #print(support_x.shape)
             embedding = model(support_x)
 
