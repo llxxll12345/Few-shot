@@ -73,10 +73,10 @@ def train(args):
             
             label = query_y.type(torch.cuda.LongTensor if torch.cuda.is_available() else torch.LongTensor)
             distance = euclidean(model(query_x), embedding)
-            prob = F.softmax(distance, dim=1)
+            #prob = F.softmax(distance, dim=1)
 
-            loss = loss_fn(prob, label)
-            acc = get_accuracy(label, prob)
+            loss = loss_fn(distance, label)
+            acc = get_accuracy(label, distance)
             #print('epoch{}, {}/{}, lost={:.4f} acc={:.4f}'.format(epoch, i, len(train_loader), loss.item(), acc))
             average_loss = update_avg(i + 1, average_loss, loss.item())
             average_accuracy = update_avg(i + 1, average_accuracy, acc)
@@ -105,10 +105,10 @@ def train(args):
 
                 label = query_y.type(torch.cuda.LongTensor if torch.cuda.is_available() else torch.LongTensor)
                 distance = euclidean(model(query_x), embedding)
-                prob = F.softmax(distance, dim=1)
+                #prob = F.softmax(distance, dim=1)
                 
-                loss = loss_fn(prob, label)
-                acc = get_accuracy(label, prob)
+                loss = loss_fn(distance, label)
+                acc = get_accuracy(label, distance)
                 average_loss_val = update_avg(i + 1, average_loss_val, loss.item())
                 average_accuracy_val = update_avg(i + 1, average_accuracy_val, acc)
 
