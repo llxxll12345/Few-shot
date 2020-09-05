@@ -20,11 +20,11 @@ def train(args):
     
     shots = args.shot+args.query
     train_set = OmiglotSet('train')
-    train_sampler = Sampler(train_set.label, 100, args.train_way, shots)
+    train_sampler = Sampler(train_set.label, args.batch_size_train, args.train_way, shots)
     train_loader = DataLoader(train_set, batch_sampler=train_sampler, num_workers=4, pin_memory=True)
 
     test_set = OmiglotSet('test')
-    test_sampler = Sampler(test_set.label, 400, args.test_way, shots)
+    test_sampler = Sampler(test_set.label, 400, args.batch_size_test, shots)
     test_loader = DataLoader(test_set, batch_sampler=test_sampler, num_workers=4, pin_memory=True)
 
     model = ConvModel(img_size=84)
@@ -123,6 +123,8 @@ def train(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-e', '--epoch', type=int, default=200)
+    parser.add_argumpent('-b', '--batch_size_train', type=int, default=100)
+    parser.add_argumpent('-bt', '--batch_size_train', type=int, default=100)
     parser.add_argument('-s', '--shot', type=int, default=1)
     parser.add_argument('-q', '--query', type=int, default=15)
     parser.add_argument('--train_way', type=int, default=30)
