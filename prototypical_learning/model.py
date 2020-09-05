@@ -58,8 +58,8 @@ class ConvModel(nn.Module):
     def forward(self, x):
         #x = self.attn(x)
         x = self.conv1(x)
-        #x = self.short1(x)
-        #x = self.short2(x)
+        x = self.short1(x)
+        x = self.short2(x)
         x = self.conv2(x)
         return x.view(x.size(0), -1)
 

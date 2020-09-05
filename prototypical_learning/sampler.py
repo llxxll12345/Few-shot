@@ -40,7 +40,6 @@ class Sampler():
                 pos_list = torch.randperm(len(ind_list))[:self.n_per_class]
                 batch.append(ind_list[pos_list])
             batch = torch.stack(batch).t().reshape(-1)
-            print(batch.shape)
             yield batch
             
 def test_sampler():
