@@ -51,8 +51,8 @@ def train(args):
         average_accuracy = 0
         for i, batch in enumerate(train_loader, 1):
             num = args.shot * args.train_way
-            support_x, query_x = batch[0][:num], batch[0][num:]
-            support_y, query_y = batch[1][:num], batch[1][num:]
+            support_x, query_x = batch[0][:num].to(device), batch[0][num:].to(device)
+            support_y, query_y = batch[1][:num].to(device), batch[1][num:].to(device)
             #print(support_x.shape)
             embedding = model(support_x)
 
