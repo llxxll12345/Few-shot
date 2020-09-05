@@ -81,7 +81,7 @@ def train(args):
             average_loss = update_avg(i + 1, average_loss, loss.item())
             average_accuracy = update_avg(i + 1, average_accuracy, acc)
 
-            optimizer.zero_grad()
+            #optimizer.zero_grad()
             loss.backward()
             optimizer.step()
             lr_scheduler.step()
