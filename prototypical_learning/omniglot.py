@@ -18,11 +18,11 @@ class OmiglotSet(Dataset):
         self.data = []
 
         dir_name = TRAIN_DIR if dir_type == 'train' else TEST_DIR
-        langs = [os.path.join(dir_name, x) for x in os.listdir(dir_name) if (x != DS_STORE and os.path.isdir(x))]
+        langs = [os.path.join(dir_name, x) for x in os.listdir(dir_name) if (x != DS_STORE and os.path.isdir(os.path.join(dir_name, x)))]
         for lang in langs:
-            chars = [os.path.join(lang, x) for x in os.listdir(lang) if (x != DS_STORE and os.path.isdir(x))]
+            chars = [os.path.join(lang, x) for x in os.listdir(lang) if (x != DS_STORE and os.path.isdir(os.path.join(lang, x)))]
             for ch in chars:
-                imgs = [os.path.join(ch, x) for x in os.listdir(ch) if x != DS_STORE]
+                imgs = [os.path.join(ch, x) for x in os.listdir(ch) if (x != DS_STORE and (x.endswith('.jpg') or x.endswith('.png')))]
                 if ch not in self.labelSet:
                     self.labelSet.add(ch)
                 self.label.extend([len(self.labelSet) - 1] * len(imgs))
@@ -48,7 +48,6 @@ def test():
     dataset = OmiglotSet('test')
     train_loader = DataLoader(dataset=dataset, num_workers=8, pin_memory=True)
     for i, batch in enumerate(train_loader, 1):
-        print(i, batch)
+        print(i, batch[0].shape)
 
-
-test()
+#test()
