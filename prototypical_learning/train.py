@@ -85,28 +85,29 @@ def train(args):
         average_loss_val = 0
         average_accuracy_val = 0
 
-        for i, batch in enumerate(test_loader, 1):
-            num = args.shot * args.test_way
-            support_x, query_x = batch[0][:num], batch[0][num:]
-            support_y, query_y = batch[1][:num], batch[1][num:]
-            embedding = model(support_x)
-            embedding = embedding.reshape(args.shot, args.test_way, -1).mean(dim=0)
+        with torch.no_grad():
+            for i, batch in enumerate(test_loader, 1):
+                num = args.shot * args.test_way
+                support_x, query_x = batch[0][:num], batch[0][num:]
+                support_y, query_y = batch[1][:num], batch[1][num:]
+                embedding = model(support_x)
+                embedding = embedding.reshape(args.shot, args.test_way, -1).mean(dim=0)
 
-            if torch.cuda.is_available():
-                label = query_y.type(torch.cuda.LongTensor)
-            else:
-                label = query_y.type(torch.LongTensor)
-            distance = euclidean(model(query_x), embedding)
-            prob = F.softmax(distance, dim=1)
-            
-            loss = loss_fn(prob, label)
-            acc = get_accuracy(label, prob)
-            average_loss_val = update_avg(i + 1, average_loss_val, loss.item())
-            average_accuracy_val = update_avg(i + 1, average_accuracy_val, acc)
+                if torch.cuda.is_available():
+                    label = query_y.type(torch.cuda.LongTensor)
+                else:
+                    label = query_y.type(torch.LongTensor)
+                distance = euclidean(model(query_x), embedding)
+                prob = F.softmax(distance, dim=1)
+                
+                loss = loss_fn(prob, label)
+                acc = get_accuracy(label, prob)
+                average_loss_val = update_avg(i + 1, average_loss_val, loss.item())
+                average_accuracy_val = update_avg(i + 1, average_accuracy_val, acc)
 
-            embedding = None
-            loss = None
-            distanece = None
+                embedding = None
+                loss = None
+                distanece = None
 
         print("epoch {} validation: loss={:4f} acc={:4f}".format(epoch, average_loss, average_accuracy))
         if average_accuracy > training_log['max_acc']:
