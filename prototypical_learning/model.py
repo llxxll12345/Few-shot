@@ -33,22 +33,25 @@ class ShortCutBlock(nn.Module):
         return x
 
 class Attention(nn.Module):
-    def __init__(self, in_dim, img_size):
+    def __init__(self, in_dim, img_size, device):
         super().__init__()
+        # Linear model to cuda should be specially specified!!!
+        self.device = device
         sz = img_size * img_size * in_dim
         self.attn = nn.Linear(sz, sz)
 
     def forward(self, x):
         flat_x = x
         flat_x = flat_x.view(x.shape[0], -1)
-        attn_weight = F.softmax(self.attn(flat_x), dim=0).view(x.shape)
+        attn_weight = F.softmax(self.attn(flat_x).to(device), dim=0).view(x.shape)
         x =torch.matmul(x, attn_weight)
         return x
 
 class ConvModel(nn.Module):
-    def __init__(self, in_dim=3, hid_dim=64, out_dim=64, img_size=64):
+    def __init__(self, device, in_dim=3, hid_dim=64, out_dim=64, img_size=64):
         super().__init__()
-        self.attn = Attention(in_dim, img_size)
+        self.device = device
+        self.attn = Attention(in_dim, img_size, device)
         self.conv1 = conv_block(in_dim, hid_dim)
         self.short1 = ShortCutBlock(hid_dim, hid_dim)
         self.short2 = ShortCutBlock(hid_dim, hid_dim)
