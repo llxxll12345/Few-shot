@@ -70,7 +70,7 @@ def train(args):
             embedding = embedding.reshape(args.shot, args.train_way, -1).mean(dim=0)
 
             
-            label = query_y.type(torch.LongTensor)
+            label = query_y.type(torch.cuda.LongTensor if torch.cuda.is_available() else torch.LongTensor)
             distance = euclidean(model(query_x), embedding)
             prob = F.softmax(distance, dim=1)
 
@@ -102,7 +102,7 @@ def train(args):
                 embedding = model(support_x)
                 embedding = embedding.reshape(args.shot, args.test_way, -1).mean(dim=0)
 
-                label = query_y.type(torch.LongTensor)
+                label = query_y.type(torch.cuda.LongTensor if torch.cuda.is_available() else torch.LongTensor)
                 distance = euclidean(model(query_x), embedding)
                 prob = F.softmax(distance, dim=1)
                 
