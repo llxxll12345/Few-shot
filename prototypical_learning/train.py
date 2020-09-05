@@ -59,10 +59,8 @@ def train(args):
             # Get the mean of all the embeddings to get the prototype for a class
             embedding = embedding.reshape(args.shot, args.train_way, -1).mean(dim=0)
 
-            if torch.cuda.is_available():
-                label = query_y.type(torch.cuda.LongTensor)
-            else:
-                label = query_y.type(torch.LongTensor)
+            
+            label = query_y.type(torch.LongTensor)
             distance = euclidean(model(query_x), embedding)
             prob = F.softmax(distance, dim=1)
 
@@ -93,10 +91,7 @@ def train(args):
                 embedding = model(support_x)
                 embedding = embedding.reshape(args.shot, args.test_way, -1).mean(dim=0)
 
-                if torch.cuda.is_available():
-                    label = query_y.type(torch.cuda.LongTensor)
-                else:
-                    label = query_y.type(torch.LongTensor)
+                label = query_y.type(torch.LongTensor)
                 distance = euclidean(model(query_x), embedding)
                 prob = F.softmax(distance, dim=1)
                 
