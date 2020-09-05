@@ -68,7 +68,7 @@ def train(args):
 
             # Get the mean of all the embeddings to get the prototype for a class
             embedding = embedding.reshape(args.shot, args.train_way, -1).mean(dim=0)
-            print(batch[0].shape)
+            #print(batch[0].shape)
 
             
             label = query_y.type(torch.cuda.LongTensor if torch.cuda.is_available() else torch.LongTensor)
@@ -77,7 +77,7 @@ def train(args):
 
             loss = loss_fn(prob, label)
             acc = get_accuracy(label, prob)
-            print('epoch{}, {}/{}, lost={:.4f} acc={:.4f}'.format(epoch, i, len(train_loader), loss.item(), acc))
+            #print('epoch{}, {}/{}, lost={:.4f} acc={:.4f}'.format(epoch, i, len(train_loader), loss.item(), acc))
             average_loss = update_avg(i + 1, average_loss, loss.item())
             average_accuracy = update_avg(i + 1, average_accuracy, acc)
 
@@ -141,7 +141,7 @@ if __name__ == '__main__':
     parser.add_argument('-b', '--batch_size_train', type=int, default=64)
     parser.add_argument('-bt', '--batch_size_test', type=int, default=64)
     parser.add_argument('-s', '--shot', type=int, default=1)
-    parser.add_argument('-q', '--query', type=int, default=3)
+    parser.add_argument('-q', '--query', type=int, default=7)
     parser.add_argument('--train_way', type=int, default=32)
     parser.add_argument('--test_way', type=int, default=32)
     parser.add_argument('-sv', '--save', default='./model/proto')

@@ -64,6 +64,7 @@ class ConvModel(nn.Module):
         return x.view(x.size(0), -1)
 
 
+'''
 def test():
     model = ConvModel()
     print(model)
@@ -75,5 +76,4 @@ def test():
     loss = fn(z, embedding)
     print(loss)
     loss.backward()
-
-
+'''
