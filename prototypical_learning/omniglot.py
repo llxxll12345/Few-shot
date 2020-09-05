@@ -18,9 +18,9 @@ class OmiglotSet(Dataset):
         self.data = []
 
         dir_name = TRAIN_DIR if dir_type == 'train' else TEST_DIR
-        langs = [os.path.join(dir_name, x) for x in os.listdir(dir_name) if x != DS_STORE and os.path.isdir(x)]
+        langs = [os.path.join(dir_name, x) for x in os.listdir(dir_name) if (x != DS_STORE and os.path.isdir(x))]
         for lang in langs:
-            chars = [os.path.join(lang, x) for x in os.listdir(lang) if x != DS_STORE and os.path.isdir(x)]
+            chars = [os.path.join(lang, x) for x in os.listdir(lang) if (x != DS_STORE and os.path.isdir(x))]
             for ch in chars:
                 imgs = [os.path.join(ch, x) for x in os.listdir(ch) if x != DS_STORE]
                 if ch not in self.labelSet:
