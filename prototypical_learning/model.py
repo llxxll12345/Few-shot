@@ -63,7 +63,6 @@ class ConvModel(nn.Module):
         x = self.conv2(x)
         return x.view(x.size(0), -1)
 
-
 def test():
     model = ConvModel()
     print(model)
@@ -76,5 +75,3 @@ def test():
     loss = fn(prob, embedding)
     print(loss.item())
     loss.backward()
-
-test()

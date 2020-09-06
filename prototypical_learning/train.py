@@ -75,7 +75,7 @@ def train(args):
             distance = euclidean(model(query_x), embedding)
             prob = F.softmax(distance, dim=1)
 
-            loss = loss_fn(distance, label)
+            loss = loss_fn(prob, label)
             acc = get_accuracy(label, distance)
             #print('epoch{}, {}/{}, lost={:.4f} acc={:.4f}'.format(epoch, i, len(train_loader), loss.item(), acc))
             average_loss = update_avg(i + 1, average_loss, loss.item())
