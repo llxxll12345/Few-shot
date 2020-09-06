@@ -17,7 +17,8 @@ class Sampler():
         label = np.array(label)
         # map from a label name to a set of index
         self.index_map = []
-        for i in range(n_class):
+        # Should process all the inputs here
+        for i in range(max(label) + 1):
             index = np.argwhere(label==i).reshape(-1)
             self.index_map.append(torch.from_numpy(index))
 
@@ -30,9 +31,9 @@ class Sampler():
             classes = []
             # shuffle_class the class list
             if self.shuffle_class:
-                classes = torch.randperm(len(self.index_map))
+                classes = torch.randperm(len(self.index_map))[:self.n_class]
             else:
-                classes = [i for i in range(len(self.index_map))]
+                classes = [i for i in range(len(self.index_map))][:self.n_class]
             assert len(classes) == self.n_class
             for c in classes:
                 ind_list = self.index_map[c]
