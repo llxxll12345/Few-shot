@@ -2,6 +2,7 @@ import torch.nn as nn
 import torch
 import torch.nn.functional as F
 import numpy as np
+from torch import optim
 # Very basic convolution model
 
 def conv_block(in_dim, out_dim):
