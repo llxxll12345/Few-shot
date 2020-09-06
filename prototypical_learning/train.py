@@ -80,7 +80,7 @@ def train(args):
             loss = loss_fn(distance, label)
             acc = get_accuracy(label, distance)
             if i % 30 == 0:
-                print(label)
+                print(label.shape, distance.shape)
                 print('epoch{}, {}/{}, lost={:.4f} acc={:.4f}'.format(epoch, i, len(train_loader), loss.item(), acc))
             average_loss = update_avg(i + 1, average_loss, loss.item())
             average_accuracy = update_avg(i + 1, average_accuracy, acc)
