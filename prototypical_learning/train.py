@@ -37,7 +37,7 @@ def train(args):
     test_sampler = Sampler(test_set.label, args.batch_size_test, args.test_way, shots)
     test_loader = DataLoader(test_set, batch_sampler=test_sampler, num_workers=4, pin_memory=True)
 
-    model = ConvModel(img_size=84).cuda()
+    model = ConvModel(img_size=84)
     model = load_model(model, 'model', args.save)
     
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
@@ -61,8 +61,7 @@ def train(args):
         average_accuracy = 0
         for i, batch in enumerate(train_loader, 1):
             num = args.shot * args.train_way
-            support_x, query_x = batch[0][:num].cuda(), batch[0][num:].cuda()
-            support_y, query_y = batch[1][:num].cuda(), batch[1][num:].cuda()
+            support_x, query_x = batch[0][:num], batch[0][num:]
             #print(support_x.shape)
             embedding = model(support_x)
 
@@ -70,13 +69,17 @@ def train(args):
             embedding = embedding.reshape(args.shot, args.train_way, -1).mean(dim=0)
             #print(batch[0].shape)
  
-            label = query_y.type(torch.cuda.LongTensor if torch.cuda.is_available() else torch.LongTensor)
+            label = torch.arange(args.train_way).repeat(args.query)
+            #label = query_y.type(torch.cuda.LongTensor if torch.cuda.is_available() else torch.LongTensor)
+            label = label.type(torch.cuda.LongTensor if torch.cuda.is_available() else torch.LongTensor)
+            
             distance = euclidean(model(query_x), embedding)
             #prob = F.softmax(distance, dim=1)
 
             loss = loss_fn(distance, label)
             acc = get_accuracy(label, distance)
-            if i % 30:
+            if i % 30 == 0:
+                print(label)
                 print('epoch{}, {}/{}, lost={:.4f} acc={:.4f}'.format(epoch, i, len(train_loader), loss.item(), acc))
             average_loss = update_avg(i + 1, average_loss, loss.item())
             average_accuracy = update_avg(i + 1, average_accuracy, acc)
@@ -98,12 +101,14 @@ def train(args):
         with torch.no_grad():
             for i, batch in enumerate(test_loader, 1):
                 num = args.shot * args.test_way
-                support_x, query_x = batch[0][:num].cuda(), batch[0][num:].cuda()
-                support_y, query_y = batch[1][:num].cuda(), batch[1][num:].cuda()
+                support_x, query_x = batch[0][:num], batch[0][num:]
+                support_y, query_y = batch[1][:num], batch[1][num:]
                 embedding = model(support_x)
                 embedding = embedding.reshape(args.shot, args.test_way, -1).mean(dim=0)
 
-                label = query_y.type(torch.cuda.LongTensor if torch.cuda.is_available() else torch.LongTensor)
+                label = torch.arange(args.train_way).repeat(args.query)
+                #label = query_y.type(torch.cuda.LongTensor if torch.cuda.is_available() else torch.LongTensor)
+                label = label.type(torch.cuda.LongTensor if torch.cuda.is_available() else torch.LongTensor)
                 distance = euclidean(model(query_x), embedding)
                 #prob = F.softmax(distance, dim=1)
                 
