@@ -51,29 +51,30 @@ class ConvModel(nn.Module):
         super().__init__()
         #self.attn = Attention(in_dim, img_size)
         self.conv1 = conv_block(in_dim, hid_dim)
-        self.short1 = ShortCutBlock(hid_dim, hid_dim)
-        self.short2 = ShortCutBlock(hid_dim, hid_dim)
-        self.conv2 = conv_block(hid_dim, out_dim)
+        self.conv2 = conv_block(hid_dim, hid_dim)
+        self.conv3 = conv_block(hid_dim, hid_dim)
+        self.conv4 = conv_block(hid_dim, out_dim)
 
     def forward(self, x):
         #x = self.attn(x)
         x = self.conv1(x)
-        x = self.short1(x)
-        x = self.short2(x)
+        x = self.conv2(x)
+        x = self.conv3(x)
         x = self.conv2(x)
         return x.view(x.size(0), -1)
 
 
-'''
 def test():
     model = ConvModel()
     print(model)
     mat = torch.rand([1, 3, 64, 64])
     z = model(mat)
     embedding = torch.FloatTensor(1).uniform_(0, 120).long()
+    prob = F.softmax(z, dim=1)
     fn = torch.nn.NLLLoss()
     print(z.shape)
-    loss = fn(z, embedding)
-    print(loss)
+    loss = fn(prob, embedding)
+    print(loss.item())
     loss.backward()
-'''
+
+test()

@@ -73,7 +73,7 @@ def train(args):
             
             label = query_y.type(torch.cuda.LongTensor if torch.cuda.is_available() else torch.LongTensor)
             distance = euclidean(model(query_x), embedding)
-            #prob = F.softmax(distance, dim=1)
+            prob = F.softmax(distance, dim=1)
 
             loss = loss_fn(distance, label)
             acc = get_accuracy(label, distance)
