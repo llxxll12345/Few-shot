@@ -29,17 +29,22 @@ class Sampler():
         for b in range(self.n_batch):
             batch = []
             classes = []
-            # shuffle_class the class list
+            # shuffle_class the class list, and pick the first n_class classes
             if self.shuffle_class:
                 classes = torch.randperm(len(self.index_map))[:self.n_class]
             else:
                 classes = [i for i in range(len(self.index_map))][:self.n_class]
             assert len(classes) == self.n_class
             for c in classes:
+                # pick the data indice of that class
                 ind_list = self.index_map[c]
-                # pick n-shot from each class
+                # pick n samples (shot + query) from each class
                 pos_list = torch.randperm(len(ind_list))[:self.n_per_class]
+                # append the indice of the samples
                 batch.append(ind_list[pos_list])
+            # stack(): stack all the tensors in the array to a single tensor
+            # t(): transpose of the tensor
+            # output array class type: [class1, class2, class3, class1, class2 ...]
             batch = torch.stack(batch).t().reshape(-1)
             yield batch
             

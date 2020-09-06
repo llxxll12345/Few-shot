@@ -70,15 +70,21 @@ def train(args):
             embedding = embedding.reshape(args.shot, args.train_way, -1).mean(dim=0)
             #print(batch[0].shape)
  
+            # Tough it seems strange here to just use labels in range but instead of real lables
+            # , but that is beacause of the way the data was sampled (see sampled.py for structure 
+            # of a batch). The real label of the data does not correspond to the index of the closest
+            # cluster center since the samples in the batch are shuffled, so instead we transform the data 
+            # label into the relative index in the range of classes, in this way the closest cluster 
+            # center index matches the relative index. 
             label = torch.arange(args.train_way).repeat(args.query)
             #label = query_y.type(torch.cuda.LongTensor if torch.cuda.is_available() else torch.LongTensor)
             label = label.type(torch.cuda.LongTensor if torch.cuda.is_available() else torch.LongTensor)
             
             distance = euclidean(model(query_x), embedding)
-            #prob = F.softmax(distance, dim=1)
+            prob = F.softmax(distance, dim=1)
 
-            loss = loss_fn(distance, label)
-            acc = get_accuracy(label, distance)
+            loss = loss_fn(prob, label)
+            acc = get_accuracy(label, prob)
             if i % 30 == 0:
                 print(label.shape, distance.shape)
                 print('epoch{}, {}/{}, lost={:.4f} acc={:.4f}'.format(epoch, i, len(train_loader), loss.item(), acc))
@@ -111,10 +117,10 @@ def train(args):
                 #label = query_y.type(torch.cuda.LongTensor if torch.cuda.is_available() else torch.LongTensor)
                 label = label.type(torch.cuda.LongTensor if torch.cuda.is_available() else torch.LongTensor)
                 distance = euclidean(model(query_x), embedding)
-                #prob = F.softmax(distance, dim=1)
+                prob = F.softmax(distance, dim=1)
                 
-                loss = loss_fn(distance, label)
-                acc = get_accuracy(label, distance)
+                loss = loss_fn(prob, label)
+                acc = get_accuracy(label, prob)
                 average_loss_val = update_avg(i + 1, average_loss_val, loss.item())
                 average_accuracy_val = update_avg(i + 1, average_accuracy_val, acc)
 
