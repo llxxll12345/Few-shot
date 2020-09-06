@@ -30,11 +30,11 @@ def train(args):
     
     shots = args.shot+args.query
     train_set = OmiglotSet('train')
-    train_sampler = Sampler(train_set.label, args.batch_size_train, args.train_way, shots)
+    train_sampler = Sampler(train_set.label, args.batch_num_train, args.train_way, shots)
     train_loader = DataLoader(train_set, batch_sampler=train_sampler, num_workers=4, pin_memory=True)
 
     test_set = OmiglotSet('test')
-    test_sampler = Sampler(test_set.label, args.batch_size_test, args.test_way, shots)
+    test_sampler = Sampler(test_set.label, args.batch_num_test, args.test_way, shots)
     test_loader = DataLoader(test_set, batch_sampler=test_sampler, num_workers=4, pin_memory=True)
 
     model = ConvModel(img_size=84).to(device)
@@ -145,13 +145,13 @@ def train(args):
             save_model(model, 'model', args.save)
         
         time_b = datetime.datetime.now()
-        print('ETA:{}/{}'.format((time_b - time_a).seconds, (time_b - time_a).seconds * (args.epoch - epoch)))
+        print('ETA:{}s/{}s'.format((time_b - time_a).seconds, (time_b - time_a).seconds * (args.epoch - epoch)))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-e', '--epoch', type=int, default=200)
-    parser.add_argument('-b', '--batch_size_train', type=int, default=16)
-    parser.add_argument('-bt', '--batch_size_test', type=int, default=16)
+    parser.add_argument('-b', '--batch_num_train', type=int, default=16)
+    parser.add_argument('-bt', '--batch_num_test', type=int, default=16)
     parser.add_argument('-s', '--shot', type=int, default=1)
     parser.add_argument('-q', '--query', type=int, default=15)
     parser.add_argument('--train_way', type=int, default=32)
