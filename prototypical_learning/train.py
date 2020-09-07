@@ -41,7 +41,7 @@ def train(args):
     model = ConvModel(img_size=84).to(device)
     model = load_model(model, 'model', args.save)
     
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     # learing rate scheduler
     lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.5)
     loss_fn = F.cross_entropy
