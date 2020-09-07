@@ -50,14 +50,13 @@ class Attention(nn.Module):
 class ConvModel(nn.Module):
     def __init__(self, in_dim=3, hid_dim=64, out_dim=64, img_size=64):
         super().__init__()
-        self.attn = Attention(in_dim, img_size)
+        #self.attn = Attention(in_dim, img_size)
         self.conv1 = conv_block(in_dim, hid_dim)
-        self.conv2 = conv_block(hid_dim, hid_dim)
-        self.conv3 = conv_block(hid_dim, hid_dim)
+        self.conv2 = ShortCutBlock(hid_dim, hid_dim)
+        self.conv3 = ShortCutBlock(hid_dim, hid_dim)
         self.conv4 = conv_block(hid_dim, out_dim)
 
     def forward(self, x):
-        x = self.attn(x)
         x = self.conv1(x)
         x = self.conv2(x)
         x = self.conv3(x)
