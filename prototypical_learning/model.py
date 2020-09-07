@@ -55,15 +55,13 @@ class ConvModel(nn.Module):
         self.conv2 = conv_block(hid_dim, hid_dim)
         self.conv3 = conv_block(hid_dim, hid_dim)
         self.conv4 = conv_block(hid_dim, out_dim)
-        self.avgPool = nn.AdaptiveAvgPool2d((16, 1))
 
     def forward(self, x):
-        #x = self.attn(x)
+        x = self.attn(x)
         x = self.conv1(x)
         x = self.conv2(x)
         x = self.conv3(x)
         x = self.conv2(x)
-        x = self.avgPool(x)
         return x.view(x.size(0), -1)
 
 def test():
