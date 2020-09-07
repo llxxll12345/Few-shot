@@ -8,17 +8,17 @@ class Sampler():
         label is the list of labels for all training samples.
         __iter__ returns indice of the sample to train on.
     """
-    def __init__(self, label, n_batch, n_class, n_per_class, shuffle_class=True):
+    def __init__(self, label, n_batch, n_class, n_per_class, limit_class=False):
         self.n_batch = n_batch
         self.n_class = n_class
         self.n_per_class = n_per_class
-        self.shuffle_class = shuffle_class
 
         label = np.array(label)
         # map from a label name to a set of index
         self.index_map = []
         # Should process all the inputs here
-        for i in range(max(label) + 1):
+        class_range = max(label) + 1 if not limit_class else n_class + 1
+        for i in range(class_range):
             index = np.argwhere(label==i).reshape(-1)
             self.index_map.append(torch.from_numpy(index))
 
@@ -30,10 +30,7 @@ class Sampler():
             batch = []
             classes = []
             # shuffle_class the class list, and pick the first n_class classes
-            if self.shuffle_class:
-                classes = torch.randperm(len(self.index_map))[:self.n_class]
-            else:
-                classes = [i for i in range(len(self.index_map))][:self.n_class]
+            classes = torch.randperm(len(self.index_map))[:self.n_class]
             assert len(classes) == self.n_class
             for c in classes:
                 # pick the data indice of that class
@@ -51,10 +48,10 @@ class Sampler():
 def test_sampler():
     dataset = OmiglotSet('train')
     print(len(dataset.labelSet))
-    test_sampler = Sampler(dataset.label, 100, 30, 1)
+    test_sampler = Sampler(dataset.label, 10, 30, 6, limit_class=True)
     test_loader = DataLoader(dataset, batch_sampler=test_sampler, num_workers=4, pin_memory=True)
     for i, batch in enumerate(test_loader, 1):
-        print(np.array(batch[1]).shape)
+        print(np.array(batch[0]).shape)
         #print(i, batch)
 
-#test_sampler()
+test_sampler()

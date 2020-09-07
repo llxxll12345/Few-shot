@@ -16,6 +16,7 @@ def save_model(model, name, save_path):
 def load_model(model, name, save_path):
     path = os.path.join(save_path, 'model.pth')
     if os.path.exists(os.path.join(save_path, 'model.pth')):
+        print('load from previous model')
         pre_model = torch.load(path)
         model.load_state_dict(pre_model,strict=False)
     return model
@@ -30,11 +31,11 @@ def train(args):
     
     shots = args.shot+args.query
     train_set = OmiglotSet('train')
-    train_sampler = Sampler(train_set.label, args.batch_num_train, args.train_way, shots)
+    train_sampler = Sampler(train_set.label, args.batch_num_train, args.train_way, shots, limit_class=args.limit_class)
     train_loader = DataLoader(train_set, batch_sampler=train_sampler, num_workers=4, pin_memory=True)
 
     test_set = OmiglotSet('test')
-    test_sampler = Sampler(test_set.label, args.batch_num_test, args.test_way, shots)
+    test_sampler = Sampler(test_set.label, args.batch_num_test, args.test_way, shots, limit_class=args.limit_class)
     test_loader = DataLoader(test_set, batch_sampler=test_sampler, num_workers=4, pin_memory=True)
 
     model = ConvModel(img_size=84).to(device)
@@ -156,6 +157,7 @@ if __name__ == '__main__':
     parser.add_argument('-q', '--query', type=int, default=15)
     parser.add_argument('--train_way', type=int, default=32)
     parser.add_argument('--test_way', type=int, default=32)
+    parser.add_argument('-l', '--limit_class', type=bool, default=False)
     parser.add_argument('-sv', '--save', default='./model/proto')
     args = parser.parse_args()
     print(vars(args))
