@@ -53,7 +53,7 @@ class ConvModel(nn.Module):
         #self.attn = Attention(in_dim, img_size)
         self.conv1 = conv_block(in_dim, hid_dim)
         self.conv2 = conv_block(hid_dim, hid_dim)
-        self.conv3 = ShortCutBlock(hid_dim, hid_dim)
+        self.conv3 = conv_block(hid_dim, hid_dim)
         self.conv4 = conv_block(hid_dim, out_dim)
 
     def forward(self, x):
