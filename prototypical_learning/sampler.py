@@ -53,5 +53,3 @@ def test_sampler():
     for i, batch in enumerate(test_loader, 1):
         print(np.array(batch[0]).shape)
         #print(i, batch)
-
-test_sampler()

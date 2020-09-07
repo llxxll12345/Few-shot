@@ -68,5 +68,3 @@ def test():
     x = torch.randn((1, 3, 64, 64))
     y = model(x)
     print(y.shape)
-
-test()
