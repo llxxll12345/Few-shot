@@ -50,11 +50,12 @@ class Attention(nn.Module):
 class ConvModel(nn.Module):
     def __init__(self, in_dim=3, hid_dim=64, out_dim=64, img_size=64):
         super().__init__()
-        #self.attn = Attention(in_dim, img_size)
+        self.attn = Attention(in_dim, img_size)
         self.conv1 = conv_block(in_dim, hid_dim)
         self.conv2 = conv_block(hid_dim, hid_dim)
         self.conv3 = conv_block(hid_dim, hid_dim)
         self.conv4 = conv_block(hid_dim, out_dim)
+        self.avgPool = nn.AdaptiveAvgPool2d((16, 1))
 
     def forward(self, x):
         #x = self.attn(x)
@@ -62,4 +63,13 @@ class ConvModel(nn.Module):
         x = self.conv2(x)
         x = self.conv3(x)
         x = self.conv2(x)
+        x = self.avgPool(x)
         return x.view(x.size(0), -1)
+
+def test():
+    model = ConvModel()
+    x = torch.randn((1, 3, 64, 64))
+    y = model(x)
+    print(y.shape)
+
+test()
