@@ -31,21 +31,17 @@ def load_model(model, name, save_path):
     return model
 
 
-train_folder = 'dataset/images_background'
-test_folder = 'dataset/images_evaluation'
-
-
 def train(args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(device)
     renew_path(args.save)
     
     batch_size = args.shot+args.query
-    train_set = Omniglot(train_folder, 'train', download=True)
+    train_set = Omniglot("dataset", 'train', download=True)
     train_sampler = Sampler(train_set.labels, args.n_batch_train, args.n_way, batch_size, limit_class=args.limit_class)
     train_loader = DataLoader(train_set, batch_sampler=train_sampler, num_workers=4, pin_memory=True)
 
-    test_set = Omniglot(test_folder, 'test', download=True)
+    test_set = Omniglot("dataset", 'test', download=True)
     test_sampler = Sampler(test_set.labels, args.n_batch_test, args.n_way, batch_size, limit_class=args.limit_class)
     test_loader = DataLoader(test_set, batch_sampler=test_sampler, num_workers=4, pin_memory=True)
 
