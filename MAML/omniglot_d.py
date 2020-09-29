@@ -5,6 +5,7 @@ import  errno
 from torchvision import transforms
 from six.moves import urllib
 import zipfile
+from PIL import Image
 
 
 # Omniglot with download integrated.
@@ -63,8 +64,10 @@ class Omniglot(data.Dataset):
 
 
     def folder_exists(self):
-        return os.path.exists(os.path.join(self.root_folder, "images_evaluation")) and \
-            os.path.exists(os.path.join(self.root_folder, "images_background"))
+        if self.data_type == "train":
+            return os.path.exists(os.path.join(self.root_folder, "images_background"))
+        else:
+            return os.path.exists(os.path.join(self.root_folder, "images_evaluation")) 
 
 
     def download(self):        
@@ -97,6 +100,7 @@ class Omniglot(data.Dataset):
         root = self.files[index][2]
         img_path = str.join('/', [root, filename])
         label = self.class_idx[class_name]
+        img = Image.open(img_path).convert('RGB')
         if self.transform is not None:
             img = self.transform(img)
         return img, label
@@ -104,10 +108,3 @@ class Omniglot(data.Dataset):
 
     def __len__(self):
         return len(self.files)
-
-
-def test():
-    # Transformer
-   omniglot = Omniglot("dataset/images_background", "train", True)
-
-test()

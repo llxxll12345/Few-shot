@@ -1,6 +1,6 @@
 import torch
 import numpy as np
-from MAML.omniglot_d import *
+from omniglot_d import *
 from torch.utils.data import DataLoader
 
 # N-shot task sampler
@@ -31,19 +31,12 @@ class Sampler():
         for b in range(self.n_batch):
             batch = []
             classes = []
-            # shuffle_class the class list, and pick the first n_class classes
             classes = torch.randperm(len(self.index_map))[:self.n_class]
             assert len(classes) == self.n_class
             for c in classes:
-                # pick the data indice of that class
                 ind_list = self.index_map[c]
-                # pick n samples (shot + query) from each class
                 pos_list = torch.randperm(len(ind_list))[:self.n_per_class]
-                # append the indice of the samples
                 batch.append(ind_list[pos_list])
-            # stack(): stack all the tensors in the array to a single tensor
-            # t(): transpose of the tensor
-            # output array class type: [class1, class2, class3, class1, class2 ...]
             batch = torch.stack(batch).t().reshape(-1)
             yield batch
             
@@ -52,6 +45,9 @@ def test_sampler():
     print(len(dataset.labels))
     test_sampler = Sampler(dataset.labels, 10, 30, 6, limit_class=True)
     test_loader = DataLoader(dataset, batch_sampler=test_sampler, num_workers=4, pin_memory=True)
+    test = []
     for i, batch in enumerate(test_loader, 1):
-        print(np.array(batch[0]).shape)
-        #print(i, batch)
+        if i == 1:
+            print(len(batch))
+
+test_sampler()

@@ -1,4 +1,4 @@
-from MAML.sampler import Sampler
+from sampler import Sampler
 
 import torch
 import numpy as np
@@ -6,12 +6,12 @@ import os
 import argparse
 import datetime
 
-from MAML.metaLearner import *
-from MAML.model import *
+from metaLearner import MetaLearner
+from model import ConvModel, get_state_dict
 from torch.utils.data import DataLoader
-from MAML.omniglot_d import Omniglot
-from MAML.sampler import Sampler
-from MAML.utils import *
+from omniglot_d import Omniglot
+from sampler import Sampler
+from utils import *
 
 def get_trainable_tensors(model):
     p = filter(lambda x: x.requires_grad, model.parameters())
@@ -42,14 +42,14 @@ def train(args):
     
     batch_size = args.shot+args.query
     train_set = Omniglot(train_folder, 'train')
-    train_sampler = Sampler(train_set.label, args.n_batch_train, args.train_way, batch_size, limit_class=args.limit_class)
+    train_sampler = Sampler(train_set.labels, args.n_batch_train, args.n_way, batch_size, limit_class=args.limit_class)
     train_loader = DataLoader(train_set, batch_sampler=train_sampler, num_workers=4, pin_memory=True)
 
     test_set = Omniglot(test_folder, 'test')
-    test_sampler = Sampler(test_set.label, args.n_batch_test, args.test_way, batch_size, limit_class=args.limit_class)
+    test_sampler = Sampler(test_set.labels, args.n_batch_test, args.n_way, batch_size, limit_class=args.limit_class)
     test_loader = DataLoader(test_set, batch_sampler=test_sampler, num_workers=4, pin_memory=True)
 
-    maml = MetaLearner(in_channels=3, n_class=args.train_way, args=args).to(device)
+    maml = MetaLearner(in_channels=3, n_class=args.n_way, args=args).to(device)
     maml = load_model(maml, 'maml', args.save)
 
     training_log = {}
@@ -61,32 +61,32 @@ def train(args):
 
     for epoch in range(1, args.epoch + 1):
         time_a = datetime.datetime.now()
-        batch_content = next(train_loader)
-        num = args.shot * args.train_way
-        support_x, query_x = batch_content[0][:num].to(device), batch_content[0][num:].to(device)
-        support_y, query_y = batch_content[1][:num].to(device), batch_content[1][num:].to(device)
-        loss, accuracy = maml(support_x, support_y, query_x, query_y)
+        loss, accuracy = maml.train_whole_batch(train_loader)
 
-        if epoch % 10 == 0:
-            print('Epoch {} training accuracy: {} loss: {}'.format(epoch, accuracy, loss))
-
+        #if epoch % 10 == 0:
+        print('Epoch {} training accuracy: {} loss: {}'.format(epoch, accuracy, loss))
         
         accuracy_list = []
-        loss_list = []
-        for _ in range(1000//args.task_num):
-            batch_content = next(test_loader)
-            num = args.shot * args.test_way
-            support_x, query_x = batch_content[0][:num].to(device), batch_content[0][num:].to(device)
-            support_y, query_y = batch_content[1][:num].to(device), batch_content[1][num:].to(device)
-            
+        total_loss = 0
+        
+        for i, batch in enumerate(test_loader, 1):
+            num = args.shot * args.n_way
+            support_x, query_x = batch[0][:num].to(device), batch[0][num:].to(device)
+            #support_y, query_y = batch_content[1][:num].to(device), batch_content[1][num:].to(device)
+            support_y = torch.arange(args.n_way).repeat(args.shot)
+            query_y = torch.arange(args.n_way).repeat(args.query)
+
+            support_y = support_y.type(torch.cuda.LongTensor if torch.cuda.is_available() else torch.LongTensor)
+            query_y   = query_y.type(torch.cuda.LongTensor if torch.cuda.is_available() else torch.LongTensor)
+
             # split to single task each time
-            for sx, sy, qx, qy in zip(support_x, support_y, query_x, query_y):
-                test_loss, test_accuracy = maml.finetunning(sx, sy, qx, qy)
-                accuracy_list.append(test_accuracy)
-                loss_list.append(test_loss)
+            
+            test_loss, test_accuracy = maml(support_x, support_y, query_x, query_y)
+            accuracy_list.append(test_accuracy)
+            total_loss += test_loss
 
         acc = np.array(accuracy_list).mean(axis=0).astype(np.float16)
-        tloss = np.array(loss_list).mean(axis=0).astype(np.float16)
+        tloss = total_loss / len(test_loader)
         print('Validation accuracy: {} loss: {}'.format(acc, tloss))
                 
         training_log['train_loss'].append(loss)
@@ -108,14 +108,18 @@ def train(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-e',  '--epoch', type=int, default=200)
-    parser.add_argument('-b',  '--n_batch_train', type=int, default=16)
-    parser.add_argument('-bt', '--n_batch_test', type=int, default=16)
+    # meta-batch size
+    parser.add_argument('-b',  '--n_batch_train', type=int, default=8)
+    parser.add_argument('-bt', '--n_batch_test', type=int, default=8)
+    parser.add_argument('-w',  '--n_way', type=int, default=5)
+
     parser.add_argument('-s',  '--shot', type=int, default=1)
-    parser.add_argument('-q',  '--query', type=int, default=15)
-    parser.add_argument('-ml', '--meta_lr', type=int, default=0.01)
-    parser.add_argument('-ul', '--update_lr', type=int, default=0.01)
-    parser.add_argument('-u',  '--n_update', type=int, default=10)
-    parser.add_argument('-ut', '--n_update_test', type=int, default=10)
+    parser.add_argument('-q',  '--query', type=int, default=3)
+
+    parser.add_argument('-ml', '--meta_lr', type=int, default=1e-3)
+    parser.add_argument('-ul', '--update_lr', type=int, default=0.4)
+    parser.add_argument('-u',  '--n_update', type=int, default=2)
+    parser.add_argument('-ut', '--n_update_test', type=int, default=2)
     parser.add_argument('-is', '--img_size', type=int, default=84)
     parser.add_argument('-l',  '--limit_class', type=bool, default=False)
     parser.add_argument('-sv', '--save', default='./model/proto')

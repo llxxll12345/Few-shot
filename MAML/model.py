@@ -37,17 +37,14 @@ class ConvModel(nn.Module):
             img_dim = img_sz // self.reduce_dim
             self.linear = nn.Linear(img_dim * img_dim * out_dim, n_class)
 
-    def forward(self, x, state=None):
-        if state != None:
-            self.load_state_dict(state)
+    def forward(self, x):
         x = self.conv1(x)
         x = self.conv2(x)
         x = self.conv3(x)
-        x = self.conv2(x)
-        print(x.view(x.size(0), -1).size())
+        x = self.conv4(x)
         if self.n_class != 0:
             output = self.linear(x.view(x.size(0), -1))
-            print(output.shape)
+            #print("Shape: {}".format(output.shape))
             return F.log_softmax(output, dim=1)
         return x.view(x.size(0), -1)
 
@@ -56,12 +53,17 @@ def test():
     x = torch.randn((1, 3, 64, 64))
     y = model(x)
     print(y.shape)
-    dc =get_state_dict(model)
-    print(model.state_dict()['conv1.0.bias'])
-    for d in dc:
-        print(d)
+    names = []
+    for name, param in model.named_parameters():
+       print(name)
+       names.append(name)
+    print(len(names))
+    #dc =get_state_dict(model)
+    #print(model.state_dict()['conv1.0.bias'])
+    #for d in dc:
+    #s    print(d)
     #ps = model.parameters()
     #for p in ps:
-    #    print(p)
+    #    print(p
 
 test()
